@@ -2,11 +2,11 @@
 {
     public class ServiceTicket
     {
-        int Id { get; set; }
-        int CustomerId { get; set; }
-        int EmployeeId { get; set; }
+        public int Id { get; set; }
+        public int CustomerId { get; set; }
+        public int EmployeeId { get; set; }
         public string Description { get; set; }
-        bool Emergency { get; set; }
-        DateTime DateCompleted { get; set; }
+        public bool Emergency { get; set; }
+        public DateTime DateCompleted { get; set; }
     }
 }
