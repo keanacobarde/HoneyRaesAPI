@@ -1,3 +1,5 @@
+using HoneyRaesAPI.Models;
+
 List<HoneyRaesAPI.Models.Customer> customers = new List<HoneyRaesAPI.Models.Customer>()
 { 
     new HoneyRaesAPI.Models.Customer()
@@ -73,7 +75,6 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
 
 };
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -92,9 +93,34 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.MapGet("/customers", () =>
+{
+    return customers;
+});
+
+app.MapGet("/employees", () =>
+{
+    return employees;
+});
+
+app.MapGet("/employees/{id}", (int id) =>
+{
+    Employee employee = employees.FirstOrDefault(e => e.Id == id);
+    if (employee == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(employee);
+});
+
 app.MapGet("/servicetickets", () =>
 {
     return serviceTickets;
+});
+
+app.MapGet("/servicetickets/{id}", (int id) =>
+{
+    return serviceTickets.FirstOrDefault(st => st.Id == id);
 });
 
 app.Run();
