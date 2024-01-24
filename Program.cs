@@ -172,4 +172,14 @@ app.MapPut("/servicetickets/{id}/complete", (int id) =>
     return Results.Ok();
 });
 
+app.MapGet("/servicetickets/emergencies", () =>
+{
+    List<HoneyRaesAPI.Models.ServiceTicket> emergencyTicketsNotDone = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
+    if (emergencyTicketsNotDone.Count == 0)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(emergencyTicketsNotDone);
+});
+
 app.Run();
