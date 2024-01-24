@@ -68,7 +68,7 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
     {
         Id = 3,
         CustomerId = 3,
-        EmployeeId = 3,
+        EmployeeId = null,
         Description = "The Salogna needed a Cauldron",
         Emergency = true,
         DateCompleted = null,
@@ -180,6 +180,16 @@ app.MapGet("/servicetickets/emergencies", () =>
         return Results.NotFound();
     }
     return Results.Ok(emergencyTicketsNotDone);
+});
+
+app.MapGet("/servicetickets/unassigned", () =>
+{
+    List<HoneyRaesAPI.Models.ServiceTicket> ticketsUnassigned = serviceTickets.Where(st => st.EmployeeId == null).ToList();
+    if (ticketsUnassigned.Count == 0)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(ticketsUnassigned);
 });
 
 app.Run();
