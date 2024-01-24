@@ -70,8 +70,8 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
         CustomerId = 3,
         EmployeeId = 3,
         Description = "The Salogna needed a Cauldron",
-        Emergency = false,
-        DateCompleted = DateTime.Now,
+        Emergency = true,
+        DateCompleted = null,
     },
 
 };
@@ -158,6 +158,17 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket updatedServiceTicket) 
         return Results.NotFound();
     }
     ticketToUpdate.EmployeeId = updatedServiceTicket.EmployeeId;
+    return Results.Ok();
+});
+
+app.MapPut("/servicetickets/{id}/complete", (int id) =>
+{
+    ServiceTicket ticketToUpdate = serviceTickets.FirstOrDefault(st => st.Id == id);
+    if (ticketToUpdate == null)
+    {
+        return Results.NotFound();
+    }
+    ticketToUpdate.DateCompleted = DateTime.Now;
     return Results.Ok();
 });
 
