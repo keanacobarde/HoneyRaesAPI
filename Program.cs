@@ -43,6 +43,7 @@ List<HoneyRaesAPI.Models.Employee> employees = new List<HoneyRaesAPI.Models.Empl
       Specialty = "Dealing with Salognas"
     },
 };
+
 List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.Models.ServiceTicket>()
 { 
     new HoneyRaesAPI.Models.ServiceTicket()
@@ -123,6 +124,41 @@ app.MapGet("/servicetickets/{id}", (int id) =>
 {
     ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
     if (serviceTicket == null)
+    {
+        return Results.NotFound();
+    }
+    serviceTicket.Employee = employees.FirstOrDefault(e => e.Id == serviceTicket.EmployeeId);
+    return Results.Ok(serviceTicket);
+});
+
+app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+    // creates a new id (When we get to it later, our SQL database will do this for us like JSON Server did!)
+    serviceTicket.Id = serviceTickets.Max(st => st.Id) + 1;
+    serviceTickets.Add(serviceTicket);
+    return serviceTicket;
+});
+
+app.MapDelete("/servicetickets/{id}", (int id) =>
+{
+    ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
+    if (serviceTicket == null)
+    {
+        return Results.NotFound();
+    };
+    serviceTickets.Remove(serviceTicket);
+    return Results.Ok();
+});
+
+app.MapPut("/servicetickets/{id}", (int id, ServiceTicket updatedServiceTicket) =>
+{
+    ServiceTicket ticketToUpdate = serviceTickets.FirstOrDefault(st => st.Id == id);
+    if (ticketToUpdate == null)
+    {
+        return Results.NotFound();
+    }
+    ticketToUpdate.EmployeeId = updatedServiceTicket.EmployeeId;
+    return Results.Ok();
+});
+
+app.Run();
