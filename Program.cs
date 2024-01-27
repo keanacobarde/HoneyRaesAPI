@@ -62,7 +62,7 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
         EmployeeId = 2,
         Description = "The Saleoomi needed a Cauldron",
         Emergency = true,
-        DateCompleted = DateTime.Now,
+        DateCompleted = new DateTime(2021, 1, 1),
     },
     new HoneyRaesAPI.Models.ServiceTicket()
     {
@@ -172,6 +172,7 @@ app.MapPut("/servicetickets/{id}/complete", (int id) =>
     return Results.Ok();
 });
 
+// EXTRA - SORTING BY EMERGENCIES
 app.MapGet("/servicetickets/emergencies", () =>
 {
     List<HoneyRaesAPI.Models.ServiceTicket> emergencyTicketsNotDone = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
@@ -182,6 +183,7 @@ app.MapGet("/servicetickets/emergencies", () =>
     return Results.Ok(emergencyTicketsNotDone);
 });
 
+// EXTRA - SORTING BY UNASSIGNED
 app.MapGet("/servicetickets/unassigned", () =>
 {
     List<HoneyRaesAPI.Models.ServiceTicket> ticketsUnassigned = serviceTickets.Where(st => st.EmployeeId == null).ToList();
@@ -191,5 +193,24 @@ app.MapGet("/servicetickets/unassigned", () =>
     }
     return Results.Ok(ticketsUnassigned);
 });
+
+// EXTRA - SORTING BY INACTIVE CUSTOMERS
+app.MapGet("/customers/inactive", () =>
+{
+    List<HoneyRaesAPI.Models.ServiceTicket> completedTicktetsOlderThanAYear = new List<ServiceTicket>();
+    List<HoneyRaesAPI.Models.Customer> inactiveCustomers = new List<Customer>();
+    List<HoneyRaesAPI.Models.ServiceTicket> completedTickets = serviceTickets.Where(st => st.DateCompleted != null).ToList();
+    for (int i = 0; i < completedTickets.Count; i++)
+    {
+        TimeSpan? ticketAge = DateTime.Now - completedTickets[i].DateCompleted;
+        if (ticketAge?.Days >= 365)
+        {
+            completedTicktetsOlderThanAYear.Add(completedTickets[i]); 
+        }
+
+    }
+    return Results.Ok(inactiveCustomers);
+});
+
 
 app.Run();
