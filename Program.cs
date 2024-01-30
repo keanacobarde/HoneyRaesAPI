@@ -53,7 +53,7 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
         EmployeeId = 1,
         Description = "The Salem needed a Cauldron",
         Emergency = false,
-        DateCompleted = DateTime.Now,
+        DateCompleted = new DateTime(2021, 1, 1),
     },
         new HoneyRaesAPI.Models.ServiceTicket()
     {
@@ -62,16 +62,16 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
         EmployeeId = 2,
         Description = "The Saleoomi needed a Cauldron",
         Emergency = true,
-        DateCompleted = DateTime.Now,
+        DateCompleted = new DateTime(2021, 1, 1),
     },
     new HoneyRaesAPI.Models.ServiceTicket()
     {
         Id = 3,
         CustomerId = 3,
-        EmployeeId = 3,
+        EmployeeId = null,
         Description = "The Salogna needed a Cauldron",
-        Emergency = false,
-        DateCompleted = DateTime.Now,
+        Emergency = true,
+        DateCompleted = null,
     },
 
 };
@@ -160,5 +160,70 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket updatedServiceTicket) 
     ticketToUpdate.EmployeeId = updatedServiceTicket.EmployeeId;
     return Results.Ok();
 });
+
+app.MapPut("/servicetickets/{id}/complete", (int id) =>
+{
+    ServiceTicket ticketToUpdate = serviceTickets.FirstOrDefault(st => st.Id == id);
+    if (ticketToUpdate == null)
+    {
+        return Results.NotFound();
+    }
+    ticketToUpdate.DateCompleted = DateTime.Now;
+    return Results.Ok();
+});
+
+// EXTRA - SORTING BY EMERGENCIES
+app.MapGet("/servicetickets/emergencies", () =>
+{
+    List<HoneyRaesAPI.Models.ServiceTicket> emergencyTicketsNotDone = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
+    if (emergencyTicketsNotDone.Count == 0)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(emergencyTicketsNotDone);
+});
+
+// EXTRA - SORTING BY UNASSIGNED
+app.MapGet("/servicetickets/unassigned", () =>
+{
+    List<HoneyRaesAPI.Models.ServiceTicket> ticketsUnassigned = serviceTickets.Where(st => st.EmployeeId == null).ToList();
+    if (ticketsUnassigned.Count == 0)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(ticketsUnassigned);
+});
+
+// EXTRA - SORTING BY INACTIVE CUSTOMERS
+app.MapGet("/customers/inactive", () =>
+{
+    List<HoneyRaesAPI.Models.ServiceTicket> completedTicktetsOlderThanAYear = new List<ServiceTicket>();
+    List<HoneyRaesAPI.Models.Customer> inactiveCustomers = new List<Customer>();
+    List<HoneyRaesAPI.Models.ServiceTicket> completedTickets = serviceTickets.Where(st => st.DateCompleted != null).ToList();
+    for (int i = 0; i < completedTickets.Count; i++)
+    {
+        TimeSpan? ticketAge = DateTime.Now - completedTickets[i].DateCompleted;
+        if (ticketAge?.Days >= 365)
+        {
+            completedTicktetsOlderThanAYear.Add(completedTickets[i]); 
+        }
+
+    }
+
+    for (int i = 0; i < customers.Count; i++)
+    {
+        for (int j = 0; j < completedTicktetsOlderThanAYear.Count; j++)
+        {
+            if (completedTicktetsOlderThanAYear[j].CustomerId == customers[i].Id)
+            {
+                inactiveCustomers.Add(customers[i]);
+            }
+        }
+    
+    }
+
+    return Results.Ok(inactiveCustomers);
+});
+
 
 app.Run();
