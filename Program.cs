@@ -251,6 +251,45 @@ app.MapGet("/employees/available", () =>
 
 });
 
+//EXTRA - EMPLOYEE'S CUSTOMERS
+// OUTPUT - LIST OF THE CUSTOMER ID TYPE
+// FOR THE GIVEN EMPLOYEE ID, RETURN ALL THE CUSTOMERS FOR WHOM THEY'VE BEEN ASSIGNED TO A SERVICE TICKET
+app.MapGet("/employees/completed/{id}", (int id) => 
+{
+    List<HoneyRaesAPI.Models.Customer> assignedCustomers = new List<Customer>();
+    List<HoneyRaesAPI.Models.ServiceTicket> assignedServiceTickets = new List<ServiceTicket>();
+    for (int i = 0; i < serviceTickets.Count; i++)
+    {
+        if (serviceTickets[i].EmployeeId == id)
+        {
+            assignedServiceTickets.Add(serviceTickets[i]);
+        }
+    
+    }
+
+    for (int i = 0; i < customers.Count; i++)
+    {
+        for (int j = 0; j < assignedServiceTickets.Count; j++)
+        {
+            if (assignedServiceTickets[j].CustomerId == customers[i].Id)
+            {
+                assignedCustomers.Add(customers[i]);
+            }
+        }
+
+    }
+
+    if (assignedCustomers.Count == 0)
+    {
+        return Results.NotFound();
+    }
+    else
+    {
+        return Results.Ok(assignedCustomers);
+    }
+
+});
+
 
 
 app.Run();
