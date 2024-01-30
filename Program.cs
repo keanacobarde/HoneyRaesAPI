@@ -59,7 +59,7 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
     {
         Id = 2,
         CustomerId = 2,
-        EmployeeId = 2,
+        EmployeeId = 1,
         Description = "The Saleoomi needed a Cauldron",
         Emergency = true,
         DateCompleted = new DateTime(2021, 1, 1),
@@ -210,6 +210,7 @@ app.MapGet("/customers/inactive", () =>
 
     }
 
+// A loop within a loop - for each customer item, compare and see whether it is equal to the completedTicketsOlderThanAYear.
     for (int i = 0; i < customers.Count; i++)
     {
         for (int j = 0; j < completedTicktetsOlderThanAYear.Count; j++)
@@ -224,6 +225,32 @@ app.MapGet("/customers/inactive", () =>
 
     return Results.Ok(inactiveCustomers);
 });
+
+// EXTRA - AVAILABLE EMPLOYEES
+// OUTPUT - A LIST OF THE EMPLOYEE DATA TYPE
+// start at service tickets, filter for incomplete ones
+// for each employee item, compare to service ticket customerid - if equal, remove from shallow copy of employee 
+
+app.MapGet("/employees/available", () =>
+{
+    List<HoneyRaesAPI.Models.Employee> availableEmployees = employees;
+
+    for (int i = 0; i < availableEmployees.Count; i++)
+    {
+        for (int j = 0; j < serviceTickets.Count; j++)
+        {
+            if (availableEmployees[i].Id == serviceTickets[j].EmployeeId && serviceTickets[j].DateCompleted != null)
+            {
+                availableEmployees.Remove(availableEmployees[i]);
+            }
+        }
+        
+    }
+
+    return Results.Ok(availableEmployees);
+
+});
+
 
 
 app.Run();
