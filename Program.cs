@@ -53,7 +53,7 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
         EmployeeId = 1,
         Description = "The Salem needed a Cauldron",
         Emergency = false,
-        DateCompleted = DateTime.Now,
+        DateCompleted = new DateTime(2021, 1, 1),
     },
         new HoneyRaesAPI.Models.ServiceTicket()
     {
@@ -209,6 +209,19 @@ app.MapGet("/customers/inactive", () =>
         }
 
     }
+
+    for (int i = 0; i < customers.Count; i++)
+    {
+        for (int j = 0; j < completedTicktetsOlderThanAYear.Count; j++)
+        {
+            if (completedTicktetsOlderThanAYear[j].CustomerId == customers[i].Id)
+            {
+                inactiveCustomers.Add(customers[i]);
+            }
+        }
+    
+    }
+
     return Results.Ok(inactiveCustomers);
 });
 
