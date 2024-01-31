@@ -53,7 +53,7 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
         EmployeeId = 1,
         Description = "The Salem needed a Cauldron",
         Emergency = false,
-        DateCompleted = new DateTime(2021, 1, 1),
+        DateCompleted = new DateTime(2023, 12, 1),
     },
         new HoneyRaesAPI.Models.ServiceTicket()
     {
@@ -115,12 +115,12 @@ app.MapGet("/employees/{id}", (int id) =>
     return Results.Ok(employee);
 });
 
-app.MapGet("/servicetickets", () =>
+app.MapGet("/api/servicetickets", () =>
 {
     return serviceTickets;
 });
 
-app.MapGet("/servicetickets/{id}", (int id) =>
+app.MapGet("/api/servicetickets/{id}", (int id) =>
 {
     ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
     if (serviceTicket == null)
@@ -287,6 +287,25 @@ app.MapGet("/employees/completed/{id}", (int id) =>
     {
         return Results.Ok(assignedCustomers);
     }
+
+});
+
+//EXTRA - EMPLOYEE OF THE MONTH
+// OUTPUT - SINGULAR ITEM WITH DATA TYPE 'EMPLOYEE' - MEETS CRITERIA OF HAVING THE MOST SERVICE TICKETS
+// SERVICE TICKETS, FILTER OUT BASED ON WHICH ONES WERE LAST MONTH
+// FOR EACH EMPLOYEE, FIND TOTAL OF SERVICE TICKETS
+// PUSH TO LIST WHICH DENOTES TICKET TOTALS AND AN EMPLOYEE ID
+// ITERATE THROUGH EMPLOYEES LIST TO MATCH EMPLOYEE ID FROM LIST ABOVE. RETURN EMPLOYEE. 
+
+app.MapGet("/employees/employeeofthemonth", () => 
+{
+    List<ServiceTicket> lastMonSerTicks = serviceTickets
+    .Where(st => st.DateCompleted != null && st.DateCompleted.Value.Month == DateTime.Now.AddMonths(-1).Month).ToList();
+    
+    var employeeOfTheMonth = employees
+    .OrderByDescending(e => lastMonSerTicks.Count(st => st.EmployeeId == e.Id)).FirstOrDefault();
+
+    return Results.Ok(employeeOfTheMonth);
 
 });
 
