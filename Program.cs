@@ -53,13 +53,13 @@ List<HoneyRaesAPI.Models.ServiceTicket> serviceTickets = new List<HoneyRaesAPI.M
         EmployeeId = 1,
         Description = "The Salem needed a Cauldron",
         Emergency = false,
-        DateCompleted = new DateTime(2021, 1, 1),
+        DateCompleted = new DateTime(2023, 12, 1),
     },
         new HoneyRaesAPI.Models.ServiceTicket()
     {
         Id = 2,
         CustomerId = 2,
-        EmployeeId = 2,
+        EmployeeId = 1,
         Description = "The Saleoomi needed a Cauldron",
         Emergency = true,
         DateCompleted = new DateTime(2021, 1, 1),
@@ -115,12 +115,12 @@ app.MapGet("/employees/{id}", (int id) =>
     return Results.Ok(employee);
 });
 
-app.MapGet("/servicetickets", () =>
+app.MapGet("/api/servicetickets", () =>
 {
     return serviceTickets;
 });
 
-app.MapGet("/servicetickets/{id}", (int id) =>
+app.MapGet("/api/servicetickets/{id}", (int id) =>
 {
     ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
     if (serviceTicket == null)
@@ -210,6 +210,7 @@ app.MapGet("/customers/inactive", () =>
 
     }
 
+// A loop within a loop - for each customer item, compare and see whether it is equal to the completedTicketsOlderThanAYear.
     for (int i = 0; i < customers.Count; i++)
     {
         for (int j = 0; j < completedTicktetsOlderThanAYear.Count; j++)
@@ -224,6 +225,104 @@ app.MapGet("/customers/inactive", () =>
 
     return Results.Ok(inactiveCustomers);
 });
+
+// EXTRA - AVAILABLE EMPLOYEES
+// OUTPUT - A LIST OF THE EMPLOYEE DATA TYPE
+// start at service tickets, filter for incomplete ones
+// for each employee item, compare to service ticket customerid - if equal, remove from shallow copy of employee 
+
+app.MapGet("/employees/available", () =>
+{
+    List<HoneyRaesAPI.Models.Employee> availableEmployees = employees;
+
+    for (int i = 0; i < availableEmployees.Count; i++)
+    {
+        for (int j = 0; j < serviceTickets.Count; j++)
+        {
+            if (availableEmployees[i].Id == serviceTickets[j].EmployeeId && serviceTickets[j].DateCompleted != null)
+            {
+                availableEmployees.Remove(availableEmployees[i]);
+            }
+        }
+        
+    }
+
+    return Results.Ok(availableEmployees);
+
+});
+
+//EXTRA - EMPLOYEE'S CUSTOMERS
+// OUTPUT - LIST OF THE CUSTOMER ID TYPE
+// FOR THE GIVEN EMPLOYEE ID, RETURN ALL THE CUSTOMERS FOR WHOM THEY'VE BEEN ASSIGNED TO A SERVICE TICKET
+app.MapGet("/employees/completed/{id}", (int id) => 
+{
+    List<HoneyRaesAPI.Models.Customer> assignedCustomers = new List<Customer>();
+    List<HoneyRaesAPI.Models.ServiceTicket> assignedServiceTickets = new List<ServiceTicket>();
+    for (int i = 0; i < serviceTickets.Count; i++)
+    {
+        if (serviceTickets[i].EmployeeId == id)
+        {
+            assignedServiceTickets.Add(serviceTickets[i]);
+        }
+    
+    }
+
+    for (int i = 0; i < customers.Count; i++)
+    {
+        for (int j = 0; j < assignedServiceTickets.Count; j++)
+        {
+            if (assignedServiceTickets[j].CustomerId == customers[i].Id)
+            {
+                assignedCustomers.Add(customers[i]);
+            }
+        }
+
+    }
+
+    if (assignedCustomers.Count == 0)
+    {
+        return Results.NotFound();
+    }
+    else
+    {
+        return Results.Ok(assignedCustomers);
+    }
+
+});
+
+//EXTRA - EMPLOYEE OF THE MONTH
+// OUTPUT - SINGULAR ITEM WITH DATA TYPE 'EMPLOYEE' - MEETS CRITERIA OF HAVING THE MOST SERVICE TICKETS
+// SERVICE TICKETS, FILTER OUT BASED ON WHICH ONES WERE LAST MONTH
+// FOR EACH EMPLOYEE, FIND TOTAL OF SERVICE TICKETS
+// PUSH TO LIST WHICH DENOTES TICKET TOTALS AND AN EMPLOYEE ID
+// ITERATE THROUGH EMPLOYEES LIST TO MATCH EMPLOYEE ID FROM LIST ABOVE. RETURN EMPLOYEE. 
+
+app.MapGet("/employees/employeeofthemonth", () => 
+{
+    List<ServiceTicket> lastMonSerTicks = serviceTickets
+    .Where(st => st.DateCompleted != null && st.DateCompleted.Value.Month == DateTime.Now.AddMonths(-1).Month).ToList();
+    
+    var employeeOfTheMonth = employees
+    .OrderByDescending(e => lastMonSerTicks.Count(st => st.EmployeeId == e.Id)).FirstOrDefault();
+
+    return Results.Ok(employeeOfTheMonth);
+
+});
+
+//EXTRA - PAST TICKET REVIEW
+//output - List with data type 'Tickets'
+// Ordered list with OLDEST first
+app.MapGet("/servicetickets/pastreview", () =>
+{
+    List<ServiceTicket> orderedTickets = serviceTickets
+    .Where(st => st.DateCompleted != null).ToList()
+    .OrderByDescending(st => st.DateCompleted).ToArray()
+    .Reverse().ToList();
+
+    return Results.Ok(orderedTickets);
+
+});
+
 
 
 app.Run();
