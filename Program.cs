@@ -309,6 +309,20 @@ app.MapGet("/employees/employeeofthemonth", () =>
 
 });
 
+//EXTRA - PAST TICKET REVIEW
+//output - List with data type 'Tickets'
+// Ordered list with OLDEST first
+app.MapGet("/servicetickets/pastreview", () =>
+{
+    List<ServiceTicket> orderedTickets = serviceTickets
+    .Where(st => st.DateCompleted != null).ToList()
+    .OrderByDescending(st => st.DateCompleted).ToArray()
+    .Reverse().ToList();
+
+    return Results.Ok(orderedTickets);
+
+});
+
 
 
 app.Run();
